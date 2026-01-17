@@ -32,11 +32,21 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         HookInstaller.installIfNeeded()
         NSApplication.shared.setActivationPolicy(.accessory)
 
+        startSocketServer()
+
         windowManager = WindowManager()
         _ = windowManager?.setupNotchWindow()
 
         screenObserver = ScreenObserver { [weak self] in
             self?.handleScreenChange()
+        }
+    }
+    
+    private func startSocketServer() {
+        HookSocketServer.shared.start { event in
+            print("[AIIsland] Received event: \(event.event) from \(event.source ?? "unknown") - status: \(event.status)")
+        } onPermissionFailure: { sessionId, toolUseId in
+            print("[AIIsland] Permission timeout: session=\(sessionId), toolUseId=\(toolUseId)")
         }
     }
 
