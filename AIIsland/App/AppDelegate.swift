@@ -44,9 +44,13 @@ class AppDelegate: NSObject, NSApplicationDelegate {
     
     private func startSocketServer() {
         HookSocketServer.shared.start { event in
-            print("[AIIsland] Received event: \(event.event) from \(event.source ?? "unknown") - status: \(event.status)")
+            Task { @MainActor in
+                SessionMonitor.shared.handleEvent(event)
+            }
         } onPermissionFailure: { sessionId, toolUseId in
-            print("[AIIsland] Permission timeout: session=\(sessionId), toolUseId=\(toolUseId)")
+            Task { @MainActor in
+                SessionMonitor.shared.removePendingPermission(toolUseId: toolUseId)
+            }
         }
     }
 

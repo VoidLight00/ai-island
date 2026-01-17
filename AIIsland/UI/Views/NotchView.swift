@@ -10,18 +10,24 @@ import SwiftUI
 struct NotchView: View {
     @EnvironmentObject var viewModel: NotchViewModel
     
+    private let openAnimation = Animation.spring(response: 0.42, dampingFraction: 0.8, blendDuration: 0)
+    private let closeAnimation = Animation.spring(response: 0.45, dampingFraction: 1.0, blendDuration: 0)
+    
     var body: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .top) {
-                if viewModel.status == .opened {
-                    openedContent
-                        .transition(.opacity.combined(with: .scale(scale: 0.9)))
-                } else {
-                    closedContent
-                }
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                notchLayout
             }
-            .frame(maxWidth: .infinity, alignment: .center)
-            .animation(viewModel.animation, value: viewModel.status)
+        }
+        .animation(viewModel.status == .opened ? openAnimation : closeAnimation, value: viewModel.status)
+    }
+    
+    @ViewBuilder
+    private var notchLayout: some View {
+        if viewModel.status == .opened {
+            openedContent
+        } else {
+            closedContent
         }
     }
     
@@ -46,21 +52,20 @@ struct NotchView: View {
     }
     
     private var openedContent: some View {
-        VStack(spacing: 0) {
-            NotchShape(cornerRadius: 20)
-                .fill(Color.black.opacity(0.95))
-                .frame(
-                    width: viewModel.openedSize.width,
-                    height: viewModel.openedSize.height
-                )
-                .overlay {
-                    VStack(spacing: 12) {
-                        headerView
-                        contentView
-                    }
-                    .padding(16)
+        NotchShape(cornerRadius: 20)
+            .fill(Color.black.opacity(0.95))
+            .frame(
+                width: viewModel.openedSize.width,
+                height: viewModel.openedSize.height
+            )
+            .overlay(alignment: .top) {
+                VStack(spacing: 12) {
+                    headerView
+                    contentView
                 }
-        }
+                .padding(16)
+                .frame(width: viewModel.openedSize.width, height: viewModel.openedSize.height, alignment: .top)
+            }
     }
     
     private var headerView: some View {
@@ -125,15 +130,17 @@ struct NotchShape: Shape {
 // MARK: - AI Instances View
 
 struct AIInstancesView: View {
+    @ObservedObject private var sessionMonitor = SessionMonitor.shared
+    
     var body: some View {
         VStack(spacing: 16) {
-            // Empty state with AI service icons
-            emptyState
-            
-            // Demo: Show all supported AI services
-            supportedServicesGrid
+            if sessionMonitor.sessions.isEmpty {
+                emptyState
+                supportedServicesGrid
+            } else {
+                sessionsList
+            }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var emptyState: some View {
@@ -145,6 +152,16 @@ struct AIInstancesView: View {
             Text("Run an AI coding assistant in terminal")
                 .font(.system(size: 11))
                 .foregroundColor(.white.opacity(0.3))
+        }
+    }
+    
+    private var sessionsList: some View {
+        ScrollView {
+            LazyVStack(spacing: 8) {
+                ForEach(sessionMonitor.sessions) { session in
+                    SessionRow(session: session)
+                }
+            }
         }
     }
     
@@ -167,6 +184,63 @@ struct AIInstancesView: View {
             }
         }
         .padding(.horizontal, 8)
+    }
+}
+
+struct SessionRow: View {
+    let session: SessionState
+    @State private var isHovered = false
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            AICharacterIcon(service: session.aiService, size: 24)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(session.projectName)
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundColor(.white)
+                
+                HStack(spacing: 4) {
+                    Text(session.aiService.displayName)
+                        .font(.system(size: 10))
+                        .foregroundColor(session.aiService.brandColor)
+                    
+                    Text(session.phase.displayText)
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.5))
+                }
+            }
+            
+            Spacer()
+            
+            sessionStatusIndicator
+        }
+        .padding(12)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(isHovered ? session.aiService.brandColor.opacity(0.15) : Color.white.opacity(0.05))
+        )
+        .onHover { isHovered = $0 }
+    }
+    
+    @ViewBuilder
+    private var sessionStatusIndicator: some View {
+        switch session.phase {
+        case .processing, .compacting:
+            ProcessingSpinner(color: session.aiService.brandColor)
+        case .waitingForApproval:
+            Circle()
+                .fill(TerminalColors.amber)
+                .frame(width: 8, height: 8)
+        case .waitingForInput:
+            Circle()
+                .fill(TerminalColors.green)
+                .frame(width: 8, height: 8)
+        case .idle:
+            Circle()
+                .fill(TerminalColors.dim)
+                .frame(width: 8, height: 8)
+        }
     }
 }
 
@@ -342,10 +416,9 @@ struct AIChatView: View {
                     )
             )
             
-            // Approval buttons
             HStack(spacing: 12) {
                 Button {
-                    // Deny
+                    denyPermission()
                 } label: {
                     Text("Deny")
                         .font(.system(size: 12, weight: .medium))
@@ -358,9 +431,10 @@ struct AIChatView: View {
                         )
                 }
                 .buttonStyle(.plain)
+                .keyboardShortcut("n", modifiers: [.command, .shift])
                 
                 Button {
-                    // Approve
+                    approvePermission()
                 } label: {
                     Text("Allow")
                         .font(.system(size: 12, weight: .medium))
@@ -373,6 +447,7 @@ struct AIChatView: View {
                         )
                 }
                 .buttonStyle(.plain)
+                .keyboardShortcut("y", modifiers: .command)
             }
             
             Spacer()
@@ -406,5 +481,19 @@ struct AIChatView: View {
             
             if item.role != "user" { Spacer() }
         }
+    }
+    
+    private func approvePermission() {
+        HookSocketServer.shared.respondToPermissionBySession(
+            sessionId: session.sessionId,
+            decision: "allow"
+        )
+    }
+    
+    private func denyPermission() {
+        HookSocketServer.shared.respondToPermissionBySession(
+            sessionId: session.sessionId,
+            decision: "deny"
+        )
     }
 }

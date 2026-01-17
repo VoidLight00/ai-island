@@ -31,6 +31,16 @@ enum SessionPhase: Equatable, Sendable {
         }
         return false
     }
+    
+    var displayText: String {
+        switch self {
+        case .idle: return "Idle"
+        case .processing: return "Processing..."
+        case .waitingForApproval: return "Awaiting approval"
+        case .waitingForInput: return "Ready"
+        case .compacting: return "Compacting..."
+        }
+    }
 }
 
 struct PermissionContext: Equatable, Sendable {
