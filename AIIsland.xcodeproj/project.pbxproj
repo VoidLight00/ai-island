@@ -26,6 +26,7 @@
 		A10000010000000000000017 /* AnyCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000017 /* AnyCodable.swift */; };
 		A10000010000000000000018 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000018 /* Assets.xcassets */; };
 		A10000010000000000000019 /* ai-island-state.py in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000019 /* ai-island-state.py */; };
+		A10000010000000000000020 /* AICharacters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000021 /* AICharacters.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -49,6 +50,7 @@
 		A20000010000000000000018 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A20000010000000000000019 /* ai-island-state.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "ai-island-state.py"; sourceTree = "<group>"; };
 		A20000010000000000000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A20000010000000000000021 /* AICharacters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICharacters.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* AIIsland.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIIsland.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -138,10 +140,19 @@
 		A50000010000000000000008 /* UI */ = {
 			isa = PBXGroup;
 			children = (
+				A50000010000000000000015 /* Components */,
 				A50000010000000000000013 /* Window */,
 				A50000010000000000000014 /* Views */,
 			);
 			path = UI;
+			sourceTree = "<group>";
+		};
+		A50000010000000000000015 /* Components */ = {
+			isa = PBXGroup;
+			children = (
+				A20000010000000000000021 /* AICharacters.swift */,
+			);
+			path = Components;
 			sourceTree = "<group>";
 		};
 		A50000010000000000000009 /* Events */ = {
@@ -281,6 +292,7 @@
 				A10000010000000000000015 /* NotchView.swift in Sources */,
 				A10000010000000000000016 /* EventMonitors.swift in Sources */,
 				A10000010000000000000017 /* AnyCodable.swift in Sources */,
+				A10000010000000000000020 /* AICharacters.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
