@@ -1,6 +1,7 @@
 # AI Island - Development Guide
 
 > **PRIORITY**: This file must be read FIRST before any development work.
+> **AI-ASSISTED DEVELOPMENT**: See `AI_DEVELOPMENT.md` for comprehensive AI tools and workflow guide.
 
 ## Project Overview
 
@@ -10,13 +11,46 @@ AI Island is a macOS notch overlay app that provides Dynamic Island-style notifi
 
 ---
 
+## AI-Assisted Development (Quick Reference)
+
+### Agent System
+| Agent | Cost | Use Case |
+|-------|------|----------|
+| **explore** | FREE | 코드베이스 검색, 패턴 찾기 |
+| **librarian** | CHEAP | 외부 문서, GitHub 검색 |
+| **oracle** | EXPENSIVE | 아키텍처, 복잡한 디버깅 |
+
+### Essential Commands
+```bash
+# Build
+xcodebuild -scheme AIIsland -configuration Debug build
+
+# Run
+open ~/Library/Developer/Xcode/DerivedData/AIIsland-*/Build/Products/Debug/AIIsland.app
+
+# Git
+git add -A && git commit -m "feat(scope): message" && git push origin main
+```
+
+### Workflow
+1. **Research** (parallel): `explore` + `librarian` 에이전트 발사
+2. **Plan**: `TodoWrite`로 작업 계획
+3. **Implement**: 코드 수정 + `lsp_diagnostics` 확인
+4. **Verify**: `xcodebuild` 빌드 테스트
+5. **Commit**: Git 커밋 & 푸시
+
+> **자세한 가이드**: `AI_DEVELOPMENT.md` 참조
+
+---
+
 ## CRITICAL: Before Starting Development
 
 ### 1. Read These Files First (in order)
 1. `CLAUDE.md` (this file) - Development priorities
-2. `ARCHITECTURE.md` - System architecture and code structure
-3. `DEVELOPMENT.md` - Setup, build, and contribution guide
-4. `AI_SERVICES.md` - AI service configurations (colors, characters, hooks)
+2. `AI_DEVELOPMENT.md` - **AI tools, agents, and workflow** (NEW)
+3. `ARCHITECTURE.md` - System architecture and code structure
+4. `DEVELOPMENT.md` - Setup, build, and contribution guide
+5. `AI_SERVICES.md` - AI service configurations (colors, characters, hooks)
 
 ### 2. Reference Implementation
 The original claude-island code is at: `/tmp/claude-island-ref/ClaudeIsland/`
@@ -164,6 +198,69 @@ Response for permission requests:
 
 ---
 
+## AI Development Quick Commands
+
+### MCP Tools (Most Used)
+```bash
+# File operations
+mcp_read(filePath="...")
+mcp_edit(filePath="...", oldString="...", newString="...")
+mcp_write(filePath="...", content="...")
+
+# Code intelligence
+mcp_lsp_diagnostics(filePath="...")
+mcp_lsp_goto_definition(filePath="...", line=N, character=N)
+
+# Search
+mcp_glob(pattern="**/*.swift")
+mcp_grep(pattern="SessionPhase", include="*.swift")
+
+# Background agents (parallel)
+mcp_background_task(agent="explore", prompt="...")
+mcp_background_task(agent="librarian", prompt="...")
+mcp_background_output(task_id="bg_xxx")
+
+# Task management
+mcp_todowrite(todos=[...])
+mcp_todoread()
+```
+
+### Xcode Project File (project.pbxproj)
+새 Swift 파일 추가 시:
+1. `PBXBuildFile` 섹션에 빌드 참조 추가
+2. `PBXFileReference` 섹션에 파일 참조 추가
+3. 해당 `PBXGroup`의 children에 파일 추가
+4. `PBXSourcesBuildPhase`의 files에 빌드 참조 추가
+
+### Research Prompt Template
+```
+Search [GitHub/docs] for [topic].
+
+I need:
+1. [Specific requirement]
+2. [Code examples]
+3. [Best practices]
+
+Focus on: [specific repos/libraries]
+Return: Code snippets I can use directly.
+```
+
+---
+
 ## Contact
 
 Repository: https://github.com/VoidLight00/ai-island
+
+---
+
+## Document Maintenance
+
+| Document | Purpose | Update When |
+|----------|---------|-------------|
+| `CLAUDE.md` | 개발 우선순위, 빠른 참조 | 구조 변경 시 |
+| `AI_DEVELOPMENT.md` | AI 도구, 에이전트, 워크플로우 | 새 패턴 발견 시 |
+| `ARCHITECTURE.md` | 시스템 설계 | 아키텍처 변경 시 |
+| `DEVELOPMENT.md` | 빌드, 테스트 가이드 | 빌드 프로세스 변경 시 |
+| `AI_SERVICES.md` | 서비스 설정 | 새 AI 서비스 추가 시 |
+
+**Last Updated**: 2026-01-17
