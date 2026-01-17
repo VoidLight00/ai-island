@@ -27,6 +27,8 @@
 		A10000010000000000000018 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000018 /* Assets.xcassets */; };
 		A10000010000000000000019 /* ai-island-state.py in Resources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000019 /* ai-island-state.py */; };
 		A10000010000000000000020 /* AICharacters.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000021 /* AICharacters.swift */; };
+		A10000010000000000000022 /* TerminalColors.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000023 /* TerminalColors.swift */; };
+		A10000010000000000000024 /* ActionButton.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20000010000000000000025 /* ActionButton.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -51,6 +53,8 @@
 		A20000010000000000000019 /* ai-island-state.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = "ai-island-state.py"; sourceTree = "<group>"; };
 		A20000010000000000000020 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A20000010000000000000021 /* AICharacters.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AICharacters.swift; sourceTree = "<group>"; };
+		A20000010000000000000023 /* TerminalColors.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TerminalColors.swift; sourceTree = "<group>"; };
+		A20000010000000000000025 /* ActionButton.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActionButton.swift; sourceTree = "<group>"; };
 		A30000010000000000000001 /* AIIsland.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = AIIsland.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -151,6 +155,8 @@
 			isa = PBXGroup;
 			children = (
 				A20000010000000000000021 /* AICharacters.swift */,
+				A20000010000000000000023 /* TerminalColors.swift */,
+				A20000010000000000000025 /* ActionButton.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -293,6 +299,8 @@
 				A10000010000000000000016 /* EventMonitors.swift in Sources */,
 				A10000010000000000000017 /* AnyCodable.swift in Sources */,
 				A10000010000000000000020 /* AICharacters.swift in Sources */,
+				A10000010000000000000022 /* TerminalColors.swift in Sources */,
+				A10000010000000000000024 /* ActionButton.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

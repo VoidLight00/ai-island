@@ -24,6 +24,13 @@ enum SessionPhase: Equatable, Sendable {
             return false
         }
     }
+    
+    var isWaitingForApproval: Bool {
+        if case .waitingForApproval = self {
+            return true
+        }
+        return false
+    }
 }
 
 struct PermissionContext: Equatable, Sendable {

@@ -1,3 +1,10 @@
+//
+//  NotchView.swift
+//  AIIsland
+//
+//  Main notch UI view with Dynamic Island-style animations
+//
+
 import SwiftUI
 
 struct NotchView: View {
@@ -28,7 +35,7 @@ struct NotchView: View {
             .overlay {
                 HStack(spacing: 4) {
                     Circle()
-                        .fill(Color.green.opacity(0.8))
+                        .fill(TerminalColors.green)
                         .frame(width: 6, height: 6)
                     Text("AI Island")
                         .font(.system(size: 10, weight: .medium))
@@ -58,6 +65,21 @@ struct NotchView: View {
     
     private var headerView: some View {
         HStack {
+            // AI Characters showcase
+            HStack(spacing: -4) {
+                ForEach(AIService.allCases.prefix(4), id: \.self) { service in
+                    if service != .unknown {
+                        Circle()
+                            .fill(service.brandColor.opacity(0.8))
+                            .frame(width: 16, height: 16)
+                            .overlay(
+                                Circle()
+                                    .stroke(Color.black, lineWidth: 1)
+                            )
+                    }
+                }
+            }
+            
             Text("AI Island")
                 .font(.system(size: 14, weight: .semibold))
                 .foregroundColor(.white)
@@ -67,6 +89,11 @@ struct NotchView: View {
             Button(action: { viewModel.toggleMenu() }) {
                 Image(systemName: viewModel.contentType == .menu ? "xmark" : "gear")
                     .foregroundColor(.white.opacity(0.7))
+                    .frame(width: 24, height: 24)
+                    .background(
+                        RoundedRectangle(cornerRadius: 6)
+                            .fill(Color.white.opacity(0.1))
+                    )
             }
             .buttonStyle(.plain)
         }
@@ -85,6 +112,8 @@ struct NotchView: View {
     }
 }
 
+// MARK: - Notch Shape
+
 struct NotchShape: Shape {
     let cornerRadius: CGFloat
     
@@ -93,21 +122,79 @@ struct NotchShape: Shape {
     }
 }
 
+// MARK: - AI Instances View
+
 struct AIInstancesView: View {
     var body: some View {
-        VStack(spacing: 8) {
-            Text("No active AI sessions")
-                .font(.system(size: 12))
-                .foregroundColor(.white.opacity(0.5))
+        VStack(spacing: 16) {
+            // Empty state with AI service icons
+            emptyState
             
-            Text("Start a Claude, ChatGPT, Gemini, or other AI coding assistant")
-                .font(.system(size: 10))
-                .foregroundColor(.white.opacity(0.3))
-                .multilineTextAlignment(.center)
+            // Demo: Show all supported AI services
+            supportedServicesGrid
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
+    
+    private var emptyState: some View {
+        VStack(spacing: 8) {
+            Text("No active AI sessions")
+                .font(.system(size: 13, weight: .medium))
+                .foregroundColor(.white.opacity(0.5))
+            
+            Text("Run an AI coding assistant in terminal")
+                .font(.system(size: 11))
+                .foregroundColor(.white.opacity(0.3))
+        }
+    }
+    
+    private var supportedServicesGrid: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Supported Services")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.white.opacity(0.4))
+            
+            LazyVGrid(columns: [
+                GridItem(.flexible()),
+                GridItem(.flexible()),
+                GridItem(.flexible())
+            ], spacing: 12) {
+                ForEach(AIService.allCases, id: \.self) { service in
+                    if service != .unknown {
+                        ServiceBadge(service: service)
+                    }
+                }
+            }
+        }
+        .padding(.horizontal, 8)
+    }
 }
+
+// MARK: - Service Badge
+
+struct ServiceBadge: View {
+    let service: AIService
+    @State private var isHovered = false
+    
+    var body: some View {
+        VStack(spacing: 4) {
+            AICharacterIcon(service: service, size: 28)
+            
+            Text(service.displayName)
+                .font(.system(size: 9, weight: .medium))
+                .foregroundColor(service.brandColor.opacity(isHovered ? 1 : 0.7))
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 8)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(isHovered ? service.brandColor.opacity(0.15) : Color.white.opacity(0.05))
+        )
+        .onHover { isHovered = $0 }
+    }
+}
+
+// MARK: - AI Menu View
 
 struct AIMenuView: View {
     var body: some View {
@@ -116,59 +203,187 @@ struct AIMenuView: View {
                 .font(.system(size: 12, weight: .medium))
                 .foregroundColor(.white.opacity(0.7))
             
-            VStack(spacing: 8) {
-                menuItem(title: "About AI Island", icon: "info.circle")
-                menuItem(title: "Check for Updates", icon: "arrow.clockwise")
-                Divider().background(Color.white.opacity(0.2))
-                menuItem(title: "Quit", icon: "power")
+            VStack(spacing: 2) {
+                MenuItem(title: "About AI Island", icon: "info.circle", action: {})
+                MenuItem(title: "Check for Updates", icon: "arrow.clockwise", action: {})
+                MenuItem(title: "Install Hooks", icon: "link.badge.plus", action: {})
+                
+                Divider()
+                    .background(Color.white.opacity(0.2))
+                    .padding(.vertical, 4)
+                
+                MenuItem(title: "Quit", icon: "power", color: TerminalColors.red, action: {
+                    NSApplication.shared.terminate(nil)
+                })
             }
             
             Spacer()
         }
     }
+}
+
+// MARK: - Menu Item
+
+struct MenuItem: View {
+    let title: String
+    let icon: String
+    var color: Color = .white
+    let action: () -> Void
     
-    private func menuItem(title: String, icon: String) -> some View {
-        HStack {
-            Image(systemName: icon)
-                .frame(width: 20)
-            Text(title)
-            Spacer()
+    @State private var isHovered = false
+    
+    var body: some View {
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                    .frame(width: 20)
+                Text(title)
+                Spacer()
+            }
+            .font(.system(size: 12))
+            .foregroundColor(color.opacity(isHovered ? 1 : 0.8))
+            .padding(.vertical, 6)
+            .padding(.horizontal, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .fill(isHovered ? Color.white.opacity(0.1) : Color.clear)
+            )
         }
-        .font(.system(size: 12))
-        .foregroundColor(.white.opacity(0.8))
-        .padding(.vertical, 4)
-        .contentShape(Rectangle())
+        .buttonStyle(.plain)
+        .onHover { isHovered = $0 }
     }
 }
+
+// MARK: - AI Chat View
 
 struct AIChatView: View {
     let session: SessionState
     
     var body: some View {
         VStack(spacing: 8) {
+            // Header with AI character
             HStack {
-                Circle()
-                    .fill(session.aiService.brandColor)
-                    .frame(width: 8, height: 8)
+                AICharacterIcon(service: session.aiService, size: 24)
                 
-                Text(session.displayTitle)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundColor(.white)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(session.displayTitle)
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white)
+                    
+                    Text(session.aiService.displayName)
+                        .font(.system(size: 10))
+                        .foregroundColor(session.aiService.brandColor)
+                }
                 
                 Spacer()
                 
-                Text(session.aiService.displayName)
-                    .font(.system(size: 10))
-                    .foregroundColor(session.aiService.brandColor)
+                // Status indicator
+                sessionStatusView
             }
             
             Divider().background(Color.white.opacity(0.2))
             
-            ScrollView {
-                LazyVStack(alignment: .leading, spacing: 8) {
-                    ForEach(session.chatItems) { item in
-                        chatBubble(item)
-                    }
+            // Chat content or permission request
+            if session.phase.isWaitingForApproval {
+                permissionRequestView
+            } else {
+                chatHistoryView
+            }
+        }
+    }
+    
+    @ViewBuilder
+    private var sessionStatusView: some View {
+        switch session.phase {
+        case .processing, .compacting:
+            ProcessingSpinner(color: session.aiService.brandColor)
+        case .waitingForApproval:
+            ProcessingSpinner(color: TerminalColors.amber)
+        case .waitingForInput:
+            Circle()
+                .fill(TerminalColors.green)
+                .frame(width: 8, height: 8)
+        case .idle:
+            Circle()
+                .fill(TerminalColors.dim)
+                .frame(width: 8, height: 8)
+        }
+    }
+    
+    private var permissionRequestView: some View {
+        VStack(spacing: 12) {
+            VStack(spacing: 4) {
+                Text("Permission Required")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(TerminalColors.amber)
+                
+                if let toolName = session.pendingToolName {
+                    Text(toolName)
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundColor(.white.opacity(0.7))
+                }
+                
+                if let toolInput = session.pendingToolInput {
+                    Text(toolInput)
+                        .font(.system(size: 10))
+                        .foregroundColor(.white.opacity(0.5))
+                        .lineLimit(3)
+                        .multilineTextAlignment(.center)
+                }
+            }
+            .padding()
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(TerminalColors.amber.opacity(0.1))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(TerminalColors.amber.opacity(0.3), lineWidth: 1)
+                    )
+            )
+            
+            // Approval buttons
+            HStack(spacing: 12) {
+                Button {
+                    // Deny
+                } label: {
+                    Text("Deny")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.white.opacity(0.7))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.white.opacity(0.1))
+                        )
+                }
+                .buttonStyle(.plain)
+                
+                Button {
+                    // Approve
+                } label: {
+                    Text("Allow")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundColor(.black)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.white.opacity(0.9))
+                        )
+                }
+                .buttonStyle(.plain)
+            }
+            
+            Spacer()
+        }
+    }
+    
+    private var chatHistoryView: some View {
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 8) {
+                ForEach(session.chatItems) { item in
+                    chatBubble(item)
                 }
             }
         }
@@ -184,7 +399,9 @@ struct AIChatView: View {
                 .padding(8)
                 .background(
                     RoundedRectangle(cornerRadius: 8)
-                        .fill(item.role == "user" ? Color.blue.opacity(0.3) : Color.white.opacity(0.1))
+                        .fill(item.role == "user" 
+                            ? session.aiService.brandColor.opacity(0.3) 
+                            : Color.white.opacity(0.1))
                 )
             
             if item.role != "user" { Spacer() }
